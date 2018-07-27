@@ -1,16 +1,16 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import axios from 'axios'
-import {Link} from 'react-router-dom'
-// import withRouter from 'react-router'
+import {connect} from 'react-redux'
+import {getLoginData} from "./../../ducks/reducer";
+
 
 class Auth extends Component {
-  constructor(){
+  constructor() {
     super()
     this.state = {
       username: '',
       password: '',
       error: '',
-      redirect: false
     }
   }
 
@@ -26,48 +26,53 @@ class Auth extends Component {
     });
   }
 
-  register(){
-    const {username, password} = this.state
-    axios.post('/api/register', {username, password}).then((res)=>{
-      const { id, username, profile_pic } = res.data
-      this.setState({
-        username,
-        password,
-        redirect: true
+  register() {
+    const { username, password } = this.state
+    if (username && password) {
+      axios.post('/api/register', { username: username, password: password }).then(res => {
+        if (res.data.length !== 0) {
+          const { id, username, password, profile_pic } = res.data[0];
+          this.props.getLoginData(id, username, password, profile_pic);
+          this.props.history.push("/dashboard")
+        }
       })
-    })
-  }
-
-  login(){
-    const {username, password} = this.state
-    axios.post('/api/login', {username, password}).then((res)=>{
-      const { id, username, profile_pic } = res.data
-      this.setState({
-        username,
-        password,
-        redirect: true
-      })
-    })
-  }
-
-
-
-
-  render(){
-    if (this.state.redirect) {
-      return <Link to="/dashboard" />;
+    } else {
+      this.setState({ error: 'pooooop!!!!!! Think you missed something!' })
     }
-    
-    return(
+  }
+
+  login() {
+    const { username, password } = this.state
+    if (username && password) {
+      axios.post('/api/login', { username: username, password: password }).then(res => {
+        console.log(res.data)
+        if (res.data.length !== 0) {
+          const { id, username, password, profile_pic } = res.data[0];
+          this.props.getLoginData(id, username, password, profile_pic);
+          this.props.history.push("/dashboard")
+        }
+      })
+    } else {
+      this.setState({ error: 'EEEEEEEEEKKKK PROBS A TYPO!!' })
+    }
+  }
+
+
+
+
+  render() {
+
+    return (
       <div>
         <h1>Auth</h1>
-        <input onChange={(e) => this.handleChange(e.target.value)}/>
-        <input onChange={(e) => this.handlePassword(e.target.value)}/>
-        <button onClick={()=>this.login()}>Login</button>
-        <button onClick={()=>this.register()}>Register</button>
+        <input onChange={(e) => this.handleChange(e.target.value)} />
+        <input onChange={(e) => this.handlePassword(e.target.value)} />
+        <button onClick={() => this.login()}>Login</button>
+        <button onClick={() => this.register()}>Register</button>
+        <p>{this.state.error}</p>
       </div>
     )
   }
 }
 
-export default Auth
+export default connect(null, {getLoginData})(Auth)
