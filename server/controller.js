@@ -1,10 +1,14 @@
 module.exports ={
   
   login: (req, res) =>{
-    const db = req.app.get("db")
-    const {username, password} = req.body
-    db.get_user([username, password])
-    .then(user => res.status(200).send(user))
+    const db = req.app.get('db') //set up connection with db
+    const {username, password} = req.body //deconstruct from front end or body
+    db.get_user([username])
+    .then(user => {
+      if (res.username === username & res.password === password){
+      res.status(200).send({id, username, profile_pic})
+      }else{send.status(400, 'gtfo')}
+    })
     .catch(()=>res.status(500).send())
   },
 
@@ -12,8 +16,10 @@ module.exports ={
     const db = req.app.get("db")
     const {username, password} = req.body
     db.create_user([username, password, `profilePicture=${username}`])
-    .then(user => res.status(200).send(user))
-    .catch(()=>res.status(500).send())
+    .then(res=>{
+        const {id, username, profile_pic} = res[0]
+        req.session.userid = username;
+        res.status(200).send(id, username, profile_pic)})
   },
 
   getPosts: (req, res) =>{
